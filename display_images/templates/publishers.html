@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<table class="table is-fullwidth is-striped is-bordered">
+  <thead>
+    <tr>
+      <th>Publishers</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for publisher in publisher_list %}
+    <tr>
+      <td><a href="/offers/{{ publisher }}"> {{ publisher }}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+{% endblock content %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<p>{{ offer_dictionary.publisher }}</p>
+<table class="table is-fullwidth is-striped is-bordered">
+  <thead>
+    <tr>
+      <th>Offers</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for offer in offer_dictionary.offers %}
+    <tr>
+          <tr>
+            <td><a href="{% url 'display_images:skus' offer_dictionary.publisher offer %}"> {{ offer }}</a></td>
+          </tr>
+    </tr>
+    {% endfor %}
+  </tbody>
+  {% endblock content %}

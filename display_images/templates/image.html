@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<p><a href="{% url 'display_images:offers' image_dictionary.publisher %}"> {{ image_dictionary.publisher }}</a>:
+  <a
+    href="{% url 'display_images:skus' image_dictionary.publisher image_dictionary.offer %}">{{ image_dictionary.offer }}</a>:
+  {{ image_dictionary.sku }}</p>
+<table class="table is-fullwidth is-striped is-bordered">
+  <thead>
+    <tr>
+      <th>Publisher</th>
+      <th>Offer</th>
+      <th>SKU</th>
+      <th>Version</th>
+      <th>Location</th>
+      <th>OS Disk Image</th>
+      <th>HyperV Generation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{{ image_dictionary.publisher }}</td>
+      <td>{{ image_dictionary.offer }}</td>
+      <td>{{ image_dictionary.sku }}</td>
+      <td>{{ image_dictionary.version }}</td>
+      <td>{{ image_dictionary.location }}</td>
+      <td>{{ image_dictionary.os }}</td>
+      <td>{{ image_dictionary.hyperv }} </td>
+    </tr>
+  </tbody>
+  {% endblock content %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<p><a href="{% url 'display_images:offers' version_dictionary.publisher %}"> {{ version_dictionary.publisher }}</a>:
+  <a
+    href="{% url 'display_images:skus' version_dictionary.publisher version_dictionary.offer %}">{{ version_dictionary.offer }}</a>:
+  {{ version_dictionary.sku }} </p>
+<table class="table is-fullwidth is-striped is-bordered">
+  <thead>
+
+    <tr>
+      <th>Version</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for version in version_dictionary.versions %}
+    <tr>
+      <td><a href="{% url 'display_images:image' version_dictionary.publisher version_dictionary.offer version_dictionary.sku version %}">{{ version }}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  {% endblock content %}
