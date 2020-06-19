@@ -81,7 +81,8 @@ def get_image(publisher, offer, sku, version):
         'version': res_dict['name'],
         'location': REGION,
         'os': res_dict['os_disk_image']['operating_system'],
-        'hyperv': hyper_v_value
+        'hyperv': hyper_v_value,
+        'os_auto_upgrade': res_dict['automatic_os_upgrade_properties']['automatic_os_upgrade_supported']
     }
     return image_dictionary
     
