@@ -1,0 +1,123 @@
+---
+- hosts: localhost
+  vars:
+    rg_name: azure-website
+    location: eastus2
+    vm_name: web1
+    project_tag: 'azure vm images'
+    description_tag: 'VM to run Azure django website'
+    vnet_name: "{{ rg_name }}-vnet"
+    subnet_name: default
+    ip_name: "{{ vm_name }}-ip"
+    nsg_name: "{{ vm_name }}-nsg"
+    nic_name: "{{ vm_name }}-nic"
+    vm_size: Standard_B1s
+    disk_type: Premium_LRS
+    user_name: matt
+    ssh_key_data: "{{ lookup('file', '~/.ssh/azure-linux/id_rsa.pub') }}"
+    ssh_key_path: /home/matt/.ssh/authorized_keys
+    
+    # vm image
+    publisher: Canonical
+    offer: UbuntuServer
+    sku: '18.04-LTS'
+    version: latest
+
+    vm_state: present # absent will remove entire resource group
+
+  tasks:
+    - name: Display public key.
+      debug:
+        msg: " {{ ssh_key_data }}"
+
+    - name: Get the public IP address of the network.
+      uri:
+        url: https://api.ipify.org?format=json
+        method: Get
+      changed_when: false
+      register: public_ip
+      until: public_ip.status == 200
+      retries: 6
+      delay: 10
+
+    - name: Create resource group.
+      azure_rm_resourcegroup:
+          name: "{{ rg_name }}"
+          tags:
+            project: "{{ project_tag }}"
+            Description: "{{ description_tag }}"
+          state: "{{ vm_state }}"
+          location: "{{ location }}"
+
+    # Network.
+    - name: Create VNET.
+      azure_rm_virtualnetwork:
+        resource_group: "{{ rg_name }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.10.0.0/16"
+
+    - name: Add subnet.
+      azure_rm_subnet:
+        resource_group: "{{ rg_name }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.10.0.0/24"
+        virtual_network: "{{ vnet_name }}"
+    
+    - name: Create public IP.
+      azure_rm_publicipaddress:
+        resource_group: "{{ rg_name }}"
+        allocation_method: Static
+        name: "{{ ip_name }}"
+      register: output_ip_address
+
+    - name: Output public IP address.
+      debug:
+        msg: "{{ output_ip_address.state.ip_address }}"
+
+    # Security group.
+    - name: Create security group that allows SSH
+      azure_rm_securitygroup:
+        resource_group: "{{ rg_name }}"
+        name: "{{ nsg_name }}"
+        rules:
+          - name: SSH
+            protocol: Tcp
+            destination_port_range: 22
+            access: Allow
+            priority: 101
+            direction: Inbound
+            source_address_prefix: "{{ public_ip.json.ip }}/32"
+
+          - name: https
+            protocol: Tcp
+            destination_port_range: 443
+            access: Allow
+            priority: 111
+            direction: Inbound
+
+    - name: Create NIC.
+      azure_rm_networkinterface:
+        resource_group: "{{ rg_name }}"
+        name: "{{ nic_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet: "{{ subnet_name }}"
+        public_ip_name: "{{ ip_name }}"
+        security_group: "{{ nsg_name }}"
+
+    - name: Create virtual machine.
+      azure_rm_virtualmachine:
+        resource_group: "{{ rg_name }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        managed_disk_type: "{{ disk_type }}"
+        network_interfaces: "{{ nic_name }}"
+        ssh_password_enabled: false
+        admin_username: "{{ user_name }}"
+        ssh_public_keys:
+          - path: "{{ ssh_key_path }}"
+            key_data: "{{ ssh_key_data }}"
+        image:
+          offer: "{{ offer }}"
+          publisher: "{{ publisher }}"
+          sku: "{{ sku }}"
+          version: "{{ version }}"
