@@ -16,10 +16,7 @@ def main():
         ) from exc
     execute_from_command_line(sys.argv)
 
-
-project_folder = os.path.expanduser(
-    '~/Documents/python/azure_images/azure_website')  # adjust as appropriate
-load_dotenv(os.path.join(project_folder, '.env'))
+load_dotenv('.env')
 
 
 if __name__ == '__main__':
