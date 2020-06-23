@@ -1,0 +1,37 @@
+---
+
+- hosts: web1
+  gather_facts: false
+  tasks:
+    
+    - name: ping
+      ping:
+
+    - name: Install required packages.
+      apt:
+        state: present
+        pkg:
+          - python3-pip
+          - build-essential
+          - libssl-dev
+          - libffi-dev
+          - python3-dev
+          - python3-venv
+      become: yes
+
+    - name: Copy requirements
+      copy:
+          dest: /tmp/requirements.txt # required. Remote absolute path where the file should be copied to. If I(src) is a directory, this must be a directory too. If I(dest) is a nonexistent path and if either I(dest) ends with "/" or I(src) is a directory, I(dest) is created. If I(src) and I(dest) are files, the parent directory of I(dest) isn't created: the task fails if it doesn't already exist.
+          src: ../requirements.txt # not required. Local path to a file to copy to the remote server; can be absolute or relative. If path is a directory, it is copied recursively. In this case, if path ends with "/", only inside contents of that directory are copied to destination. Otherwise, if it does not end with "/", the directory itself with all contents is copied. This behavior is similar to Rsync.
+
+    - name: Install virtual environment with pip.
+      pip:
+        requirements: /tmp/requirements.txt
+        virtualenv: /opt/azure_website/venv
+        virtualenv_command: /usr/bin/python3.6 -m venv azure_website
+      become: yes
+        
+    - name: Copy site files.
+      copy:
+        dest: /tmp/azure_website
+        src: ../../azure_website/
