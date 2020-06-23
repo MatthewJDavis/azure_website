@@ -34,4 +34,4 @@
     - name: Copy site files.
       copy:
         dest: /tmp/azure_website
-        src: ../../azure_website/
+        src: ../django_site
