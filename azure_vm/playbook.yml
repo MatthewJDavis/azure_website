@@ -26,6 +26,18 @@
     vm_state: present # absent will remove entire resource group
 
   tasks:
+
+    - name: Destory resouce group and all resources.
+      azure_rm_resourcegroup:
+        name: "{{ rg_name }}"
+        tags:
+          project: "{{ project_tag }}"
+          Description: "{{ description_tag }}"
+        state: "{{ vm_state }}"
+        location: "{{ location }}"
+        force_delete_nonempty: yes
+      when: vm_state == 'absent'
+
     - name: Display public key.
       debug:
         msg: " {{ ssh_key_data }}"
@@ -42,12 +54,12 @@
 
     - name: Create resource group.
       azure_rm_resourcegroup:
-          name: "{{ rg_name }}"
-          tags:
-            project: "{{ project_tag }}"
-            Description: "{{ description_tag }}"
-          state: "{{ vm_state }}"
-          location: "{{ location }}"
+        name: "{{ rg_name }}"
+        tags:
+          project: "{{ project_tag }}"
+          Description: "{{ description_tag }}"
+        state: "{{ vm_state }}"
+        location: "{{ location }}"
 
     # Network.
     - name: Create VNET.
@@ -121,3 +133,4 @@
           publisher: "{{ publisher }}"
           sku: "{{ sku }}"
           version: "{{ version }}"
+        state: "{{ vm_state }}"
