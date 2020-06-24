@@ -68,3 +68,5 @@
         source /home/django/venv/bin/activate
       become: yes
       become_user: django
+
+# gunicorn command = gunicorn --bind 0.0.0.0:8000 azure_website.wsgi from django_site dir
