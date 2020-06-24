@@ -55,18 +55,32 @@
         recurse: yes
       become: yes
 
-    - name: Copy site files.
-      copy:
-        dest: /home/django-user/azure_website
-        src: ../django_site
-        owner: django-user
-        group: django-group
-      become: yes
-
-    - name: Start django site.
-      command: >
-        source /home/django/venv/bin/activate
-      become: yes
-      become_user: django
+    # - name: Copy site files.
+    #   copy:
+    #     dest: /home/django-user/azure_website
+    #     src: ../django_site
+    #     owner: django-user
+    #     group: django-group
+    #   become: yes
 
 # gunicorn command = gunicorn --bind 0.0.0.0:8000 azure_website.wsgi from django_site dir
+
+    - name: Copy gunicorn files.
+      copy:
+        src: files/
+        dest: /etc/systemd/system/
+      become: yes
+
+    - name: Start and enable gunicorn.socket
+      systemd:
+        name: gunicorn.socket
+        enabled: yes
+        state: started
+      become: yes
+
+    - name: Start and enable gunicorn 
+      systemd:
+        name: gunicorn  
+        enabled: yes
+        state: started
+      become: yes

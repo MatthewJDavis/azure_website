@@ -1,0 +1,17 @@
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=django-user
+Group=www-data
+WorkingDirectory=/home/django-user/azure_website/django_site
+ExecStart=/home/django-user/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/run/gunicorn.sock \
+          azure_website.wsgi
+
+[Install]
+WantedBy=multi-user.target
