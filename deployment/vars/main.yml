@@ -1,0 +1,6 @@
+# let's encrypt certificate settings.
+certbot_create_if_missing: true
+certbot_admin_email: "{{ letsencrypt_email }}"
+certbot_certs:
+  - domains:
+      - "{{ inventory_hostname }}"
