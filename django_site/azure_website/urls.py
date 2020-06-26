@@ -18,6 +18,5 @@ from django.urls import include, path
 from display_images.views import GetPublishers, GetOffers
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('display_images.urls')),
 ]
