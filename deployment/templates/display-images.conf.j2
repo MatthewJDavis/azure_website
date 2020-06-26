@@ -1,0 +1,32 @@
+# HTTPS server configuration.
+
+# Redirect HTTP traffic to HTTPS.
+server {
+    listen 80 default_server;
+    server_name {{ inventory_hostname }} www.{{ inventory_hostname }};
+    index index.html;
+    return 301 https://$host$request_uri;
+}
+
+# Redirect www to naked domain
+server {
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem;
+    server_name www.{{ inventory_hostname }};
+    return 301 https://{{ inventory_hostname }}$request_uri;
+}
+
+# Serve HTTPS traffic using the Let's Encrypt certificate.
+server {
+    listen 443 ssl default_server;
+    server_name {{ inventory_hostname }};
+    
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/{{ inventory_hostname }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ inventory_hostname }}/privkey.pem;
+}
