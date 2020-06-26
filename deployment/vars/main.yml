@@ -1,3 +1,6 @@
+username: django
+group: django
+
 # let's encrypt certificate settings.
 certbot_create_if_missing: true
 certbot_admin_email: "{{ letsencrypt_email }}"
