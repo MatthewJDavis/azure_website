@@ -1,12 +1,28 @@
 ---
 
-- hosts: web1
+- hosts: azure
   gather_facts: false
-  tasks:
-    
-    - name: ping
-      ping:
+  become: true
+  vars_files:
+    - vars/main.yml
 
+  pre_tasks:
+    - name: Install python if not already present.
+      raw: test -e /usr/bin/python || (apt -y && apt install -y python-minimal)
+      changed_when: false
+
+    - name: Gather facts after Python is definitely present.
+      setup:
+
+    - name: Ensure apt cache is updated.
+      apt:
+        update_cache: true
+        cache_valid_time: 600
+
+  roles:
+    - geerlingguy.certbot
+
+  tasks:
     - name: Install required packages.
       apt:
         state: present
@@ -17,7 +33,7 @@
           - libffi-dev
           - python3-dev
           - python3-venv
-      become: yes
+          - nginx
 
     - name: Copy requirements
       copy:
@@ -26,61 +42,86 @@
 
     - name: Create django group
       group:
-        name: django-group
+        name: "{{ group }}"
         state: present
-      become: yes
 
     - name: Create a user to run the django site with.
       user:
-        name: django-user
+        name: "{{ username }}"
         comment: django Azure Website user
-        group: django-group
-        create_home: yes
-      become: yes
+        group: "{{ group }}"
+        create_home: true
       
     - name: Install virtual environment with pip.
       pip:
         requirements: /tmp/requirements.txt
-        virtualenv: /home/django-user/venv
+        virtualenv: /home/{{ username }}/venv
         virtualenv_command: /usr/bin/python3.6 -m venv azure_website
-      become: yes
         
-    - name: Change permissions of django-user home.
+    - name: Change permissions of "{{ username }}" home.
       file:
-        path: /home/django-user/venv
+        path: /home/{{ username }}/venv
         mode: 0755
-        owner: django-user
-        group: django-group
+        owner: "{{ username }}"
+        group: "{{ group }}"
         state: directory
-        recurse: yes
-      become: yes
+        recurse: true
 
-    # - name: Copy site files.
-    #   copy:
-    #     dest: /home/django-user/azure_website
-    #     src: ../django_site
-    #     owner: django-user
-    #     group: django-group
-    #   become: yes
+    - name: Copy site files.
+      copy:
+        dest: /home/{{ username }}/
+        src: ../django_site
+        owner: "{{ username }}"
+        group: "{{ group }}"
 
-# gunicorn command = gunicorn --bind 0.0.0.0:8000 azure_website.wsgi from django_site dir
-
-    - name: Copy gunicorn files.
+    - name: Copy gunicorn socket.
       copy:
         src: files/
         dest: /etc/systemd/system/
-      become: yes
 
-    - name: Start and enable gunicorn.socket
+    - name: Copy gunicorn service.
+      template:
+        src: templates/gunicorn.service.j2
+        dest: /etc/systemd/system/gunicorn.service
+        mode: 0644
+
+    - name: Start and enable gunicorn.socket.
       systemd:
         name: gunicorn.socket
-        enabled: yes
+        enabled: true
         state: started
-      become: yes
 
-    - name: Start and enable gunicorn 
+    - name: Start and enable gunicorn.
       systemd:
         name: gunicorn  
-        enabled: yes
+        enabled: true
         state: started
-      become: yes
+
+    - name: Remove Nginx default settings
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx/sites-available/default
+        - /etc/nginx/sites-enabled/default
+      
+    - name: Copy Nginx server configuration.
+      template:
+        src: templates/display-images.conf.j2
+        dest: /etc/nginx/sites-available/display-images.conf
+        mode: 0644
+        
+    - name: Create symbolic link to sites enabled.
+      file:
+        src: /etc/nginx/sites-available/display-images.conf
+        dest: /etc/nginx/sites-enabled/display-images.conf
+        owner: root
+        group: root
+        state: link
+      notify: restart nginx
+  
+  handlers:
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
