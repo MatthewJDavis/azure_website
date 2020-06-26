@@ -107,6 +107,13 @@
             priority: 111
             direction: Inbound
 
+          - name: http
+            protocol: Tcp
+            destination_port_range: 80
+            access: Allow
+            priority: 121
+            direction: Inbound
+
     - name: Create NIC.
       azure_rm_networkinterface:
         resource_group: "{{ rg_name }}"
