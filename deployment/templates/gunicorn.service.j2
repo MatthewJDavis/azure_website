@@ -4,10 +4,10 @@ Requires=gunicorn.socket
 After=network.target
 
 [Service]
-User=django-user
+User={{ username }}
 Group=www-data
-WorkingDirectory=/home/django-user/azure_website/django_site
-ExecStart=/home/django-user/venv/bin/gunicorn \
+WorkingDirectory=/home/{{ username }}/django_site
+ExecStart=/home/{{ username }}/venv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
           --bind unix:/run/gunicorn.sock \
