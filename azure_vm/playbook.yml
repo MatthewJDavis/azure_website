@@ -1,7 +1,7 @@
 ---
 - hosts: localhost
   vars:
-    rg_name: azure-website
+    rg_name: azure-website1
     location: eastus2
     vm_name: web1
     project_tag: 'azure vm images'
