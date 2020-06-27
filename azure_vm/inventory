@@ -2,8 +2,10 @@
 localhost
 
 [azure]
-web1 ansible_host=40.70.187.129
+techness.co.uk
 
 [azure:vars]
 ansible_user=matt
 ansible_python_interpreter=/usr/bin/python3
+ansible_user=matt
+letsencrypt_email=matthewdavis111+letechness@gmail.com
